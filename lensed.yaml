@@ -1,0 +1,117 @@
+theory:
+  theory_primordial_Pk.FeaturePrimordialPk:
+    python_path: "."
+    k_pivot: 0.05
+    n_samples_wavelength: 20
+  camb:
+    external_primordial_pk: True
+    extra_args: {
+      # Accuracy
+      lens_potential_accuracy: 5, Accuracy.IntkAccuracyBoost: 1, Accuracy.lSampleBoost: 3,
+      # Below: automatically added by the cosmo-generator
+      halofit_version: mead, bbn_predictor: PArthENoPE_880.2_standard.dat,
+      num_massive_neutrinos: 1, nnu: 3.046, theta_H0_range: [20, 100]}
+likelihood:
+  # Change the dataset paths appropriately
+  planck_lowl:
+    class: likelihood_class.SimulatedLikelihood
+    python_path: "."
+    dataset_file: /home/jesus/projects/paper_cosmo_demo/data/planck_lowl_feature_nodelens.dataset
+    Alens_delens: 1
+  planck_highl:
+    class: likelihood_class.SimulatedLikelihood
+    python_path: "."
+    dataset_file: /home/jesus/projects/paper_cosmo_demo/data/planck_highl_feature_nodelens.dataset
+    Alens_delens: 1
+  SO_TEB:
+    class: likelihood_class.SimulatedLikelihood
+    python_path: "."
+    dataset_file: /home/jesus/projects/paper_cosmo_demo/data/SO_TEB_feature_nodelens.dataset
+    Alens_delens: 1
+  SO_EB_highl:
+    class: likelihood_class.SimulatedLikelihood
+    python_path: "."
+    dataset_file: /home/jesus/projects/paper_cosmo_demo/data/SO_EB_highl_feature_nodelens.dataset
+    Alens_delens: 1
+params:
+  # Feature parameters
+  logamplitude:
+    prior: [-2, -0.6]
+    ref: {dist: norm, loc: -1.1, scale: 0.05}
+    proposal: 0.2
+    latex: \log_{10}A_\mathrm{feature}
+    drop: True
+  amplitude:
+    value: 'lambda logamplitude: 10**logamplitude'
+    latex: A_\mathrm{feature}
+  logwavelength:
+    prior: [-2.5, -1.8]
+    ref: {dist: norm, loc: -2.1, scale: 0.001}
+    proposal: 0.0005
+    latex: \log_{10}l_\mathrm{feature}
+    drop: True
+  wavelength:
+    value: 'lambda logwavelength: 10**logwavelength'
+    latex: l_\mathrm{feature}
+  logcentre:
+    prior: [-1.15, -0.3]
+    ref: {dist: norm, loc: -0.7, scale: 0.008}
+    proposal: 0.1
+    latex: \log_{10}k_{c,\mathrm{feature}}
+    drop: True
+  centre:
+    value: 'lambda logcentre: 10**logcentre'
+    latex: k_{c,\mathrm{feature}}
+  logwidth:
+    prior: [1e-3, 3]
+    ref: {dist: norm, loc: 0.1, scale: 0.02}
+    proposal: 0.05
+    latex: w_\mathrm{feature}
+  # Baseline cosmological parameters
+  As:
+    value: 'lambda logA: 1e-10*np.exp(logA)'
+    latex: A_\mathrm{s}
+  logA:
+    prior: [1.61, 3.91]
+    ref: {dist: norm, loc: 3.05, scale: 0.001}
+    proposal: 0.0005
+    latex: \log(10^{10} A_\mathrm{s})
+    drop: true
+  ns:
+    prior: [0.8, 1.2]
+    ref: {dist: norm, loc: 0.965, scale: 0.004}
+    proposal: 0.001
+    latex: n_\mathrm{s}
+  H0:
+    prior: [20, 100]
+    ref: {dist: norm, loc: 67.2, scale: 0.1}
+    proposal: 0.1
+    latex: H_0
+  ombh2:
+    prior: [0.005, 0.1]
+    ref: {dist: norm, loc: 0.0224, scale: 0.00005}
+    proposal: 0.00001
+    latex: \Omega_\mathrm{b} h^2
+  omch2:
+    prior: [0.001, 0.99]
+    ref: {dist: norm, loc: 0.12, scale: 0.0005}
+    proposal: 0.0001
+    latex: \Omega_\mathrm{c} h^2
+  mnu: 0.06
+  tau:
+    prior: [0.01, 0.8]
+    ref: {dist: norm, loc: 0.055, scale: 0.001}
+    proposal: 0.0005
+    latex: \tau_\mathrm{reio}
+prior:
+  # Ignore LCDM-like plateau when feature in practice outside the CMB window
+  high_k: >
+    lambda logamplitude, logcentre, logwidth:
+    import_module('theory_primordial_Pk').logprior_high_k(
+    10**logamplitude, 10**logcentre, logwidth)
+sampler:
+  mcmc:
+    covmat: baseline.covmat
+    oversample_power: 0.4
+    proposal_scale: 1.9
+output: chains/lensed
