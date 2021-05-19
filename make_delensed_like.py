@@ -72,7 +72,7 @@ def pars_set_feature(pars, As, ns, A, l, c, w, n_samples_wavelength=20):
 
 if __name__ == "__main__":
 
-    output_dir = "./data"
+    output_dir = os.path.join(os.getcwd(), "data")
 
     # Precision + ranges for the simulated experimental data
     Alens = 0.3  # Same for Planck: ell>2000 should dominate for oscillations
@@ -129,3 +129,12 @@ if __name__ == "__main__":
     assert abs(sum(sum(chi2 for chi2 in chi2s.values()) for chi2s in
                    [chi2s_null_feature, chi2s_null_feature_nodelens])) < 1e-8, \
         "Feature null test failed"
+
+    # Add the right paths to the input files
+    for file_name in ["lensed.yaml", "delensed.yaml"]:
+        new_lines = []
+        with open(file_name, "r") as this_file:
+            for line in this_file:
+                new_lines.append(line.replace("/path/to/data", output_dir))
+        with open(file_name, "w") as this_file:
+            this_file.write("".join(new_lines))
