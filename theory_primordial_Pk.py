@@ -26,7 +26,7 @@ def feature_power_spectrum(As, ns, A, l, c, w,
 
     Returns a sample of k, P(k)
     """
-    # Ensure thin enough sampling at low-k -- TODO: ideally log-linear sampling
+    # Ensure thin enough sampling at low-k
     delta_k = min(0.0005, l / n_samples_wavelength)
     ks = np.arange(kmin, kmax, delta_k)
     power_law = lambda k: As * (k / k_pivot) ** (ns - 1)
